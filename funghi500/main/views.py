@@ -116,11 +116,19 @@ class MainPage(TemplateView):
     
     def get(self, request):
         rgx = request.GET.get("q", "").strip()
+        mesi = request.GET.get("mesi")
+        diametro_min = request.GET.get("diametro_min")
+        diametro_max = request.GET.get("diametro_max")
+        altezza_min = request.GET.get("altezza_min")
+        altezza_max = request.GET.get("altezza_max")
+        altitudine_min = request.GET.get("altitudine_min")
+        altitudine_max = request.GET.get("altitudine_max")
         context = {}
         context = loadcontext(context)
+        filtrati = Fungo.objects.all()
         
+        # Filtro per espressione logica
         if rgx:
-            # Regex semplificata per validazione
             pattern = r'^[0-9!&|()\s]+$'
             if not re.fullmatch(pattern, rgx):
                 context["evento"] = "Formato ricerca non valido. Usa solo numeri, &, |, ! e parentesi."
@@ -129,23 +137,89 @@ class MainPage(TemplateView):
             try:
                 expr_tree = parse_expression(rgx)
                 tutti_funghi = Fungo.objects.prefetch_related('valori').all()
-                filtrati = []
+                ids_filtrati = []
 
                 for f in tutti_funghi:
                     valori_set = set(f.valori.values_list('id', flat=True))
                     if expr_tree.evaluate(valori_set):
-                        filtrati.append(f)
+                        ids_filtrati.append(f.id) # type: ignore
 
+                filtrati = filtrati.filter(id__in=ids_filtrati)
                 context["expr"] = rgx
-                context["risultati"] = [f.id for f in filtrati]
-                context["num"] = len(filtrati)
             except Exception as e:
                 print(f"Errore nel parsing dell'espressione: {str(e)}")
                 context["evento"] = "Errore nell'interpretazione della ricerca"
                 context["risultati"] = []
                 context["num"] = 0
-            
-            return render(request, self.template_name, context)
+                return render(request, self.template_name, context)
+
+        # Filtro per mesi
+        if mesi:
+            mesi_ids = [m.strip() for m in mesi.split(',') if m.strip()]
+            if mesi_ids:
+                # Filtra per i mesi selezionati (usando l'ID del mese)
+                filtrati = filtrati.filter(mesi__id__in=mesi_ids).distinct()
+
+        # Filtro per diametro (considerando sia MIN che MAX)
+        if diametro_min:
+            try:
+                diametro_min = int(diametro_min)
+                # Cerca funghi dove diametroMAX >= diametro_min (il fungo può arrivare almeno a questa dimensione)
+                filtrati = filtrati.filter(diametroMAX__gte=diametro_min)
+            except ValueError:
+                pass
+                
+        if diametro_max:
+            try:
+                diametro_max = int(diametro_max)
+                # Cerca funghi dove diametroMIN <= diametro_max (il fungo parte almeno da questa dimensione)
+                filtrati = filtrati.filter(diametroMIN__lte=diametro_max)
+            except ValueError:
+                pass
+
+        # Filtro per altezza (considerando sia MIN che MAX)
+        if altezza_min:
+            try:
+                altezza_min = int(altezza_min)
+                filtrati = filtrati.filter(altezzaMAX__gte=altezza_min)
+            except ValueError:
+                pass
+                
+        if altezza_max:
+            try:
+                altezza_max = int(altezza_max)
+                filtrati = filtrati.filter(altezzaMIN__lte=altezza_max)
+            except ValueError:
+                pass
+
+        # Filtro per altitudine (considerando sia MIN che MAX)
+        if altitudine_min:
+            try:
+                altitudine_min = int(altitudine_min)
+                filtrati = filtrati.filter(altitudineMAX__gte=altitudine_min)
+            except ValueError:
+                pass
+                
+        if altitudine_max:
+            try:
+                altitudine_max = int(altitudine_max)
+                filtrati = filtrati.filter(altitudineMIN__lte=altitudine_max)
+            except ValueError:
+                pass
+
+        context["risultati"] = [f.id for f in filtrati] # type: ignore
+        context["num"] = filtrati.count()
+        
+        # Mantieni i valori dei filtri nel contesto per mostrare i valori selezionati nel template
+        context.update({
+            "mesi_selezionati": mesi,
+            "diametro_min": diametro_min,
+            "diametro_max": diametro_max,
+            "altezza_min": altezza_min,
+            "altezza_max": altezza_max,
+            "altitudine_min": altitudine_min,
+            "altitudine_max": altitudine_max,
+        })
         
         return render(request, self.template_name, context)
         
