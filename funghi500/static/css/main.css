@@ -1,0 +1,158 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 50px);
+    grid-template-rows: repeat(10, 50px);
+    gap: 2px;
+    margin: 20px auto;
+    justify-content: center;
+}
+
+.grid-button {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.grid-button:hover {
+    background-color: #6c757d !important;
+    color: white;
+}
+
+.grid-button.selected {
+    background-color: #ffc107 !important;
+    color: black;
+    font-weight: bold;
+}
+
+.grid-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.grid-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+
+.main-content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .search-column {
+        width: 23%;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        align-self: flex-start;
+        margin-bottom: 15px;
+    }
+    .grid-wrapper {
+        width: 50%;
+        order: 2;
+    }
+    .search-left {
+        order: 1;
+    }
+    .search-right {
+        order: 3;
+    }
+    .search-row {
+        margin-bottom: 10px;
+    }
+    .search-row label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    .month-checkboxes {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .month-checkbox {
+        margin-right: 15px;
+        margin-bottom: 5px;
+        min-width: 80px;
+    }
+    .range-inputs {
+        display: flex;
+        align-items: center;
+    }
+    .range-inputs input {
+        width: 70px !important;
+    }
+    .range-separator {
+        margin: 0 5px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 992px) {
+        .search-column, .grid-wrapper {
+            width: 100%;
+        }
+        .grid-wrapper {
+            order: 1;
+        }
+        .search-left {
+            order: 2;
+            width: 48%;
+        }
+        .search-right {
+            order: 3;
+            width: 48%;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .search-left, .search-right {
+            width: 100%;
+        }
+        .month-checkboxes {
+            flex-direction: column;
+        }
+        .month-checkbox {
+            margin-right: 0;
+        }
+    }
+
+
+    /* Stili esistenti... */
+
+.search-header {
+    max-width: 600px;
+    margin: 0 auto 20px;
+}
+
+.grid-button.selected {
+    background-color: #ffc107 !important;
+    color: black;
+    font-weight: bold;
+}
+
+.grid-button.or-selected {
+    background-color: #0d6efd !important;
+    color: white;
+    font-weight: bold;
+}
+
+/* Stili per i bottoni AND/OR */
+.btn-group-toggle .btn {
+    cursor: pointer;
+}
+
+.btn-group-toggle .btn.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Altri stili esistenti... */

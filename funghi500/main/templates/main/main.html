@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <!-- Barra di ricerca nell'header -->
+    <div class="search-header mb-4">
+        <form method="post" action="{% url 'main:main' %}">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" class="form-control mr-1" placeholder="es. 23 & (15 | 21) & !3" id="search-input" name="search-input">
+                <button class="btn btn-primary" type="submit" id="quick-search-btn">
+                    <i class="bi bi-search"></i> Cerca
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid-header text-center">
+        <h2>500 Funghi</h2>
+        <p class="text-muted">Ricerca avanzata</p>
+        <p>{{num}} risultati:</p>
+        <p>
+        {% for risultato in risultati %}
+            {{risultato}}, 
+        {% endfor %}
+        </p>
+    </div>
+    
+    <div class="main-content">
+        <!-- Colonna sinistra -->
+        <div class="search-column search-left">
+            <div class="search-row">
+                <label>Diametro (cm)</label>
+                <div class="range-inputs">
+                    <input type="number" class="form-control flex-fill" placeholder="Min" style="flex: 1 1 0;">
+                    <span class="range-separator" style="align-self: center;">-</span>
+                    <input type="number" class="form-control flex-fill" placeholder="Max" style="flex: 1 1 0;">
+                </div>
+            </div>
+            
+            <div class="search-row">
+                <label>Altezza (cm)</label>
+                <div class="range-inputs">
+                    <input type="number" class="form-control flex-fill" placeholder="Min" style="flex: 1 1 0;">
+                    <span class="range-separator">-</span>
+                    <input type="number" class="form-control flex-fill" placeholder="Max" style="flex: 1 1 0;">
+                </div>
+            </div>
+            
+            <div class="search-row">
+                <label>Altitudine (m)</label>
+                <div class="range-inputs">
+                    <input type="number" class="form-control flex-fill" placeholder="Min" style="flex: 1 1 0;">
+                    <span class="range-separator">-</span>
+                    <input type="number" class="form-control flex-fill" placeholder="Max" style="flex: 1 1 0;">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Griglia centrale -->
+        <div class="grid-wrapper">
+            <div class="grid-container">
+                {% for row in rows %}
+                    {% for cell in row %}
+                        <button class="grid-button" 
+                                data-x="{{ forloop.parentloop.counter0 }}" 
+                                data-y="{{ forloop.counter0 }}">
+                            {% if cell.image %}
+                                <img src="{% static cell.image %}" alt="img" style="max-width: 40px; max-height: 40px;">
+                            {% endif %}
+                        </button>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Colonna destra -->
+        <div class="search-column search-right">
+            <div class="search-row">
+                <label>Mesi di crescita</label>
+                <div class="month-checkboxes">
+                    {% for month in months %}
+                    <div class="form-check month-checkbox">
+                        <input class="form-check-input" type="checkbox" id="month{{ forloop.counter }}">
+                        <label class="form-check-label" for="month{{ forloop.counter }}">{{ month }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Selezione AND/OR -->
+            <div class="search-row mt-3">
+                <label>Tipo di ricerca:</label>
+                <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                    <label class="btn btn-outline-warning active">
+                        <input type="radio" name="search-type" value="and" checked> AND
+                    </label>
+                    <label class="btn btn-outline-primary">
+                        <input type="radio" name="search-type" value="or"> OR
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="grid-footer text-center mt-3">
+        <button id="reset-btn" class="btn btn-outline-secondary mr-2 mb-3">
+            <i class="bi bi-arrow-counterclockwise"></i> Resetta selezione
+        </button>
+        <button id="search-btn" class="btn btn-primary mb-3">
+            <i class="bi bi-search"></i> Cerca
+        </button>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    let searchMode = 'and'; // Default to AND search
+    
+    // Gestione click sui bottoni
+    $('.grid-button').click(function() {
+        if(searchMode === 'or') {
+            $(this).toggleClass('or-selected');
+        } else {
+            $(this).toggleClass('selected');
+        }
+    });
+    
+    // Reset della selezione
+    $('#reset-btn').click(function() {
+        $('.grid-button').removeClass('selected or-selected');
+        $('input[type="number"]').val('');
+        $('input[type="checkbox"]').prop('checked', false);
+        $('input[name="search-type"][value="and"]').prop('checked', true);
+        searchMode = 'and';
+    });
+    
+    // Cambia modalità di ricerca
+    $('input[name="search-type"]').change(function() {
+        const newMode = $(this).val();
+        
+        if(newMode === 'or' && searchMode === 'and') {
+            // Passando da AND a OR: converti i selected in or-selected
+            $('.grid-button.selected').removeClass('selected').addClass('or-selected');
+        } else if(newMode === 'and' && searchMode === 'or') {
+            // Passando da OR a AND: converti gli or-selected in selected
+            $('.grid-button.or-selected').removeClass('or-selected').addClass('selected');
+        }
+        
+        searchMode = newMode;
+    });
+    
+    // Ricerca rapida
+    $('#quick-search-btn').click(function() {
+        const searchTerm = $('#search-input').val().trim();
+        if(searchTerm) {
+            // Regex: numeri separati da spazi e operatori (&, |, !), con eventuali parentesi
+            const regex = /^(!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)|\((?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\))(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)))*)(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)|\((?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\))(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)))*))*$/;
+            if (!regex.test(searchTerm)) {
+                alert('Formato ricerca non valido. Usa solo numeri, &, |, ! e parentesi.');
+                return false; // Blocca il submit
+            }
+        }
+    });
+    
+    // Ricerca avanzata
+    $('#search-btn').click(function() {
+        const selectedButtons = searchMode === 'and' ? 
+            $('.grid-button.selected') : $('.grid-button.or-selected');
+        
+        alert('Ricerca avanzata in modalità ' + searchMode.toUpperCase() + 
+              ' con ' + selectedButtons.length + ' elementi selezionati');
+    });
+});
+</script>
+{% endblock %}
