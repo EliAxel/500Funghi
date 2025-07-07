@@ -9,10 +9,9 @@
 <div class="container mt-4">
     <!-- Barra di ricerca nell'header -->
     <div class="search-header mb-4">
-        <form method="post" action="{% url 'main:main' %}">
-            {% csrf_token %}
+        <form method="get" action="{% url 'main:main' %}">
             <div class="input-group">
-                <input type="text" class="form-control mr-1" placeholder="es. 23 & (15 | 21) & !3" id="search-input" name="search-input">
+                <input type="text" class="form-control mr-1" placeholder="es. 23 & (15 | 21) & !3" id="search-input" name="q">
                 <button class="btn btn-primary" type="submit" id="quick-search-btn">
                     <i class="bi bi-search"></i> Cerca
                 </button>
@@ -23,12 +22,17 @@
     <div class="grid-header text-center">
         <h2>500 Funghi</h2>
         <p class="text-muted">Ricerca avanzata</p>
-        <p>{{num}} risultati:</p>
-        <p>
-        {% for risultato in risultati %}
-            {{risultato}}, 
-        {% endfor %}
-        </p>
+        {% if evento %}
+            <p class="text-muted">{{evento}}</p>
+        {% endif %}
+        {% if num >= 0 %}
+            <p>{{num}} risultati per {{expr}}:</p>
+            <p>
+            {% for risultato in risultati %}
+                {{ risultato }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            </p>
+        {% endif %}
     </div>
     
     <div class="main-content">
