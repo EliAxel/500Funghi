@@ -23,9 +23,9 @@
 <div class="container mt-4">
     <!-- Barra di ricerca nell'header -->
     <div class="search-header mb-4">
-        <form method="get" action="{% url 'main:main' %}" id="quick-search-form">
+        <form id="quick-search-form">
             <div class="input-group">
-                <input type="text" class="form-control mr-1" placeholder="es. 23 & (15 | 21) & !3" id="search-input" name="q">
+                <input type="text" class="form-control mr-1" placeholder="es. 23 & (15 | 21) & !3" id="search-input" >
                 <button class="btn btn-primary" type="submit" id="quick-search-btn">
                     <i class="bi bi-search"></i> Cerca
                 </button>
@@ -40,7 +40,12 @@
             <p class="text-muted">{{evento}}</p>
         {% endif %}
         {% if num >= 0 %}
-            <p>{{num}} risultati per {{expr}}:</p>
+            {% if mainexpr %}
+            <p>{{num}} risultati per {{mainexpr}}</p>
+            {% endif %}
+            {% if expr %}
+            <p>con {{expr}}</p>
+            {% endif %}
             <p>
             {% for risultato in risultati %}
                 {{ risultato }}{% if not forloop.last %}, {% endif %}
@@ -190,10 +195,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Ricerca rapida
+    // Ricerca rapida (gestita completamente via JavaScript)
     document.getElementById('quick-search-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const searchTerm = document.getElementById('search-input').value.trim();
+        
         if(searchTerm) {
             // Regex: numeri separati da spazi e operatori (&, |, !), con eventuali parentesi
             const regex = /^(!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)|\((?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\))(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)))*)(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)|\((?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\))(\s*[&|]\s*(?:!?\d+|\(!?\d+(?:\s*[&|]\s*!?\d+)*\)))*))*$/;
@@ -202,10 +208,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
         }
-        this.submit();
+        
+        // Prepara i parametri della ricerca (solo range e mesi)
+        const params = {};
+        
+        // Parametri dei range
+        const diametroMin = document.getElementById('diametro-min').value;
+        const diametroMax = document.getElementById('diametro-max').value;
+        const altezzaMin = document.getElementById('altezza-min').value;
+        const altezzaMax = document.getElementById('altezza-max').value;
+        const altitudineMin = document.getElementById('altitudine-min').value;
+        const altitudineMax = document.getElementById('altitudine-max').value;
+        
+        if (diametroMin) params.diametro_min = diametroMin;
+        if (diametroMax) params.diametro_max = diametroMax;
+        if (altezzaMin) params.altezza_min = altezzaMin;
+        if (altezzaMax) params.altezza_max = altezzaMax;
+        if (altitudineMin) params.altitudine_min = altitudineMin;
+        if (altitudineMax) params.altitudine_max = altitudineMax;
+        
+        // Mesi selezionati
+        const selectedMonths = [];
+        document.querySelectorAll('.month-checkbox input[type="checkbox"]:checked').forEach(checkbox => {
+            selectedMonths.push(checkbox.value);
+        });
+        if (selectedMonths.length > 0) {
+            params.mesi = selectedMonths.join(',');
+        }
+        
+        // Aggiungi il termine di ricerca solo se non vuoto
+        if (searchTerm) {
+            params.q = searchTerm;
+        }
+        
+        // Costruisci la query string
+        const queryString = new URLSearchParams(params).toString();
+        
+        // Reindirizza alla pagina con i parametri di ricerca
+        window.location.href = "{% url 'main:main' %}?" + queryString;
     });
     
-    // Ricerca avanzata
+    // Ricerca avanzata (come prima)
     document.getElementById('search-btn').addEventListener('click', function() {
         // Prepara i parametri della ricerca
         const params = {};
@@ -259,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const queryString = new URLSearchParams(params).toString();
         
         // Reindirizza alla pagina con i parametri di ricerca
-        window.location.href = "{% url 'main:main' %}?" + queryString;
+        window.location.href = "{% url 'main:main' %}" + (queryString ? "?" + queryString : "");
     });
 });
 </script>

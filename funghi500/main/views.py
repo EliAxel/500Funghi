@@ -123,12 +123,16 @@ class MainPage(TemplateView):
         altezza_max = request.GET.get("altezza_max")
         altitudine_min = request.GET.get("altitudine_min")
         altitudine_max = request.GET.get("altitudine_max")
+        expr = ""
         context = {}
         context = loadcontext(context)
         filtrati = Fungo.objects.all()
         
         # Filtro per espressione logica
         if rgx:
+            if rgx == '':
+                return render(request, self.template_name, context)
+            
             pattern = r'^[0-9!&|()\s]+$'
             if not re.fullmatch(pattern, rgx):
                 context["evento"] = "Formato ricerca non valido. Usa solo numeri, &, |, ! e parentesi."
@@ -145,7 +149,7 @@ class MainPage(TemplateView):
                         ids_filtrati.append(f.id) # type: ignore
 
                 filtrati = filtrati.filter(id__in=ids_filtrati)
-                context["expr"] = rgx
+                context["mainexpr"] = rgx
             except Exception as e:
                 print(f"Errore nel parsing dell'espressione: {str(e)}")
                 context["evento"] = "Errore nell'interpretazione della ricerca"
@@ -159,6 +163,7 @@ class MainPage(TemplateView):
             if mesi_ids:
                 # Filtra per i mesi selezionati (usando l'ID del mese)
                 filtrati = filtrati.filter(mesi__id__in=mesi_ids).distinct()
+                expr = expr + "mesi(" + mesi + ") "
 
         # Filtro per diametro (considerando sia MIN che MAX)
         if diametro_min:
@@ -166,6 +171,7 @@ class MainPage(TemplateView):
                 diametro_min = int(diametro_min)
                 # Cerca funghi dove diametroMAX >= diametro_min (il fungo può arrivare almeno a questa dimensione)
                 filtrati = filtrati.filter(diametroMAX__gte=diametro_min)
+                expr = expr + "diaMIN(" + str(diametro_min) + "cm) "
             except ValueError:
                 pass
                 
@@ -174,6 +180,7 @@ class MainPage(TemplateView):
                 diametro_max = int(diametro_max)
                 # Cerca funghi dove diametroMIN <= diametro_max (il fungo parte almeno da questa dimensione)
                 filtrati = filtrati.filter(diametroMIN__lte=diametro_max)
+                expr = expr + "diaMAX(" + str(diametro_max) + "cm) "
             except ValueError:
                 pass
 
@@ -182,6 +189,7 @@ class MainPage(TemplateView):
             try:
                 altezza_min = int(altezza_min)
                 filtrati = filtrati.filter(altezzaMAX__gte=altezza_min)
+                expr = expr + "altzMIN(" + str(altezza_min) + "cm) "
             except ValueError:
                 pass
                 
@@ -189,6 +197,7 @@ class MainPage(TemplateView):
             try:
                 altezza_max = int(altezza_max)
                 filtrati = filtrati.filter(altezzaMIN__lte=altezza_max)
+                expr = expr + "altzMAX(" + str(altezza_max) + "cm) "
             except ValueError:
                 pass
 
@@ -197,6 +206,7 @@ class MainPage(TemplateView):
             try:
                 altitudine_min = int(altitudine_min)
                 filtrati = filtrati.filter(altitudineMAX__gte=altitudine_min)
+                expr = expr + "altdnMIN(" + str(altitudine_min) + "m) "
             except ValueError:
                 pass
                 
@@ -204,6 +214,7 @@ class MainPage(TemplateView):
             try:
                 altitudine_max = int(altitudine_max)
                 filtrati = filtrati.filter(altitudineMIN__lte=altitudine_max)
+                expr = expr + "altdnMAX(" + str(altitudine_max) + "m)"
             except ValueError:
                 pass
 
@@ -220,6 +231,6 @@ class MainPage(TemplateView):
             "altitudine_min": altitudine_min,
             "altitudine_max": altitudine_max,
         })
-        
+        context["expr"] = expr
         return render(request, self.template_name, context)
         
