@@ -40,9 +40,11 @@
             <p class="text-muted">{{evento}}</p>
         {% endif %}
         {% if num >= 0 %}
+            <p>{{num}} risultati
             {% if mainexpr %}
-            <p>{{num}} risultati per {{mainexpr}}</p>
+             per {{mainexpr}}
             {% endif %}
+            </p>
             {% if expr %}
             <p>con {{expr}}</p>
             {% endif %}

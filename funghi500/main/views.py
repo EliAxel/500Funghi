@@ -217,20 +217,22 @@ class MainPage(TemplateView):
                 expr = expr + "altdnMAX(" + str(altitudine_max) + "m)"
             except ValueError:
                 pass
-
-        context["risultati"] = [f.id for f in filtrati] # type: ignore
-        context["num"] = filtrati.count()
         
-        # Mantieni i valori dei filtri nel contesto per mostrare i valori selezionati nel template
-        context.update({
-            "mesi_selezionati": mesi,
-            "diametro_min": diametro_min,
-            "diametro_max": diametro_max,
-            "altezza_min": altezza_min,
-            "altezza_max": altezza_max,
-            "altitudine_min": altitudine_min,
-            "altitudine_max": altitudine_max,
-        })
-        context["expr"] = expr
+        if mesi or altezza_min or altezza_max or diametro_min or diametro_max or altitudine_min or altitudine_max or rgx:
+            context["risultati"] = [f.id for f in filtrati] # type: ignore
+            context["num"] = filtrati.count()
+            
+            # Mantieni i valori dei filtri nel contesto per mostrare i valori selezionati nel template
+            context.update({
+                "mesi_selezionati": mesi,
+                "diametro_min": diametro_min,
+                "diametro_max": diametro_max,
+                "altezza_min": altezza_min,
+                "altezza_max": altezza_max,
+                "altitudine_min": altitudine_min,
+                "altitudine_max": altitudine_max,
+            })
+            context["expr"] = expr
+            
         return render(request, self.template_name, context)
         
