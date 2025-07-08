@@ -1,14 +1,14 @@
 template = """
         {{
             "id": {id},
-            "diametroMIN": 10,
-            "diametroMAX": 20,
-            "altezzaMIN": 30,
-            "altezzaMAX": 40,
-            "altitudineMIN": 500,
-            "altitudineMAX": 600,
-            "mesi": [10,11,12],
-            "valori": [50,60,70]
+            "diametroMIN": ,
+            "diametroMAX": ,
+            "altezzaMIN": ,
+            "altezzaMAX": ,
+            "altitudineMIN": ,
+            "altitudineMAX": ,
+            "mesi": [],
+            "valori": []
         }},"""
 
 with open('output.json', 'w') as file:
@@ -20,14 +20,14 @@ with open('output.json', 'w') as file:
     file.write("""
         {
             "id": 500,
-            "diametroMIN": 10,
-            "diametroMAX": 20,
-            "altezzaMIN": 30,
-            "altezzaMAX": 40,
-            "altitudineMIN": 500,
-            "altitudineMAX": 600,
-            "mesi": [10,11,12],
-            "valori": [50,60,70]
+            "diametroMIN": ,
+            "diametroMAX": ,
+            "altezzaMIN": ,
+            "altezzaMAX": ,
+            "altitudineMIN": ,
+            "altitudineMAX": ,
+            "mesi": [],
+            "valori": []
         }
     ]
 }""")
