@@ -5,9 +5,9 @@ template = """
             "diametroMAX": ,
             "altezzaMIN": ,
             "altezzaMAX": ,
-            "altitudineMIN": ,
-            "altitudineMAX": ,
-            "mesi": [],
+            "altitudineMIN": 0,
+            "altitudineMAX": 00,
+            "mesi": [10,11],
             "valori": []
         }},"""
 
@@ -24,9 +24,9 @@ with open('output.json', 'w') as file:
             "diametroMAX": ,
             "altezzaMIN": ,
             "altezzaMAX": ,
-            "altitudineMIN": ,
-            "altitudineMAX": ,
-            "mesi": [],
+            "altitudineMIN": 0,
+            "altitudineMAX": 00,
+            "mesi": [10,11],
             "valori": []
         }
     ]
