@@ -7,5 +7,5 @@ urlpatterns = [
     re_path(r'|/', include('main.urls')),
 ]
 
-#delete_db()
-#init_db()
+delete_db()
+init_db()
